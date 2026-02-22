@@ -1,0 +1,121 @@
+html,body,.desktop{
+    width: 100%;
+    height: 100%;
+}
+.fixed-logo{
+    position: fixed;
+    left: 3.7vh;
+    top: 3.7vh;
+}
+.fixed-logo img {
+    width: 25vh;
+}
+
+.fixed-links {
+    position: fixed;
+    right: 3.7vh;
+    top: 3.7vh;
+    display: flex;
+    align-items: center;
+}
+.fixed-links img {
+    height: 4.5vh;
+}
+.fixed-links :nth-child(1) {
+    margin-right: 1vh;
+}
+
+.fixed-right-bottom{
+    position: fixed;
+    right: 2.77vh;
+    bottom: 1.5vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+.qrcode-wrap{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 27vh;
+    padding: 2vh 0;
+    text-align: center;
+}
+.qrcode-wrap img{
+    width: 10.3vh;
+    background-color: #fff;
+    padding: 0.3vh;
+}
+
+.qrcode-text{
+    font-size: 1.86vh;
+    color: #fff;
+    margin-top: 1.85vh;
+    background-color: #EFBF04;
+    padding: 0.74vh 1.5vh;
+    border-radius: 2vh;
+}
+.tips{
+    color: #fff;
+    font-size: 1.48vh;
+}
+.fixed-slogan{
+    position: fixed;
+    bottom: 2.3vh;
+    left: 0;
+    width: 100%;
+    padding: 0 40vh;
+    box-sizing: border-box;
+    text-align: center;
+}
+.fixed-slogan img{
+    max-width: 100%;
+    width: 80vh;
+
+}
+
+main{
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    box-sizing: border-box;
+    padding-bottom: 8vh;
+    user-select: none;
+}
+.time{
+    font-size: 13.9vh;
+    color: #fff;
+    margin-bottom: 2vh;
+    font-family: "PingFang SC", "Helvetica Neue", Helvetica, STHeiTi, Arial, sans-serif;
+    letter-spacing: 0.2vh;
+}
+@keyframes marqueeAnim {
+    0% {
+        transform: translateX(100vw);
+    }
+    100% {
+        transform: translateX(-100%);
+    }
+}
+.marquee-root {
+    position: fixed;
+    top:0;
+    left: 0 ;
+    width: 100%;
+    height: 30px;
+    text-align: left;
+    line-height: 30px;
+    overflow: hidden;
+    background-color: red;
+}
+.marquee-content {
+    white-space: nowrap;
+    display: inline-block;
+    color: white;
+    animation: marqueeAnim 15s linear 0s infinite;
+}
