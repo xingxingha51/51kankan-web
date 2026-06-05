@@ -9,21 +9,37 @@
 //   - extractPreloads(html)    -> critical CSS + hero image to <link rel=preload>
 //
 // The encrypt() wrapper emits <link rel="preload"> hints for the critical
-// stylesheets and hero background BEFORE the (render-blocking) crypto script,
-// so the browser's preload scanner can fetch them in parallel with the
-// decryption instead of only discovering them after document.write().
+// stylesheets and hero background first, so the browser's preload scanner can
+// fetch them in parallel with decryption instead of only discovering them
+// after document.write().
+//
+// Decryption uses a ~1.8KB inlined AES-128-CBC decryptor (scripts/decryptor.min.js,
+// readable source in decryptor.src.js) instead of a 60KB external crypto-js —
+// no extra render-blocking request. decrypt() below also still reads the old
+// crypto-js wrapper format so existing pages can be re-encrypted.
 
+const fs = require('fs');
+const path = require('path');
 const crypto = require('crypto');
+
+// the minified browser decryptor, inlined into every page wrapper
+const DECRYPTOR = fs.readFileSync(path.join(__dirname, 'decryptor.min.js'), 'utf8').trim();
 
 // --- AES-128-CBC (key == iv, both the 16-char hex string used as utf8 bytes) ---
 
 function decrypt(html) {
-  const contentMatch = html.match(/var content="([^"]+)"/);
-  const keyMatch = html.match(/CryptoJS\.enc\.Utf8\.parse\("([^"]+)"\)/);
-  if (!contentMatch || !keyMatch) throw new Error('encrypted payload not recognised');
-  const key = Buffer.from(keyMatch[1], 'utf8');
+  // new wrapper: __kkdec("<base64>","<key>")
+  let m = html.match(/__kkdec\("([^"]+)","([^"]+)"\)/);
+  // legacy crypto-js wrapper: var content="..." + CryptoJS.enc.Utf8.parse("<key>")
+  if (!m) {
+    const c = html.match(/var content="([^"]+)"/);
+    const k = html.match(/CryptoJS\.enc\.Utf8\.parse\("([^"]+)"\)/);
+    if (c && k) m = [null, c[1], k[1]];
+  }
+  if (!m) throw new Error('encrypted payload not recognised');
+  const key = Buffer.from(m[2], 'utf8');
   const decipher = crypto.createDecipheriv('aes-128-cbc', key, key);
-  const buf = Buffer.from(contentMatch[1], 'base64');
+  const buf = Buffer.from(m[1], 'base64');
   return Buffer.concat([decipher.update(buf), decipher.final()]).toString('utf8');
 }
 
@@ -78,14 +94,9 @@ function encrypt(plaintext) {
   const cipher = crypto.createCipheriv('aes-128-cbc', key, key);
   const enc = Buffer.concat([cipher.update(plaintext, 'utf8'), cipher.final()]).toString('base64');
 
-  return `${preloads ? preloads + '\n' : ''}<script src="/theme/skin1/js/crypto-js.min.js?_v=20251024"></script>
-<script>
-var content="${enc}";
-var key =CryptoJS.enc.Utf8.parse("${keyStr}");
-var iv =CryptoJS.enc.Utf8.parse("${keyStr}");
-var options = { mode: CryptoJS.mode.CBC,padding:CryptoJS.pad.Pkcs7,iv:iv}
-content = CryptoJS.AES.decrypt(content,key,options).toString(CryptoJS.enc.Utf8)
-document.write(content)
+  return `${preloads ? preloads + '\n' : ''}<script>
+${DECRYPTOR}
+document.write(__kkdec("${enc}","${keyStr}"))
 </script>`;
 }
 
