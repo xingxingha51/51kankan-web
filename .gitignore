@@ -8,4 +8,4 @@ package-lock.json
 pc.html
 mobile.html
 ios.html
-theme/
+/theme/
