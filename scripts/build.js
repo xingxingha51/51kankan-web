@@ -2,7 +2,7 @@
 // Rebuild all encrypted landing pages with the current optimizations:
 //   - webp <image-set> override on the hero background (idempotent)
 //   - preload hints for critical CSS + hero image (via the encrypt wrapper)
-//   - single crypto-js script (aes.min.js no longer referenced)
+//   - inlined ~1.8KB AES decryptor (no external crypto-js/aes.min.js request)
 //
 // Safe to re-run anytime: it decrypts each page, re-applies the transforms,
 // and re-encrypts with a fresh key. Run it after changing a background image
