@@ -19,8 +19,8 @@
 
 const fs = require('fs');
 const path = require('path');
-const crypto = require('crypto');
 const { execFileSync } = require('child_process');
+const { decrypt, encrypt } = require('./crypto-html');
 
 const PUBLIC_DIR = path.join(__dirname, '..', 'public');
 const TARGET_FILES = ['_ios.html', '_mobile.html'];
@@ -60,33 +60,6 @@ Examples:
   node scripts/update-links.js --apk-name kankan_V2.4.0.apk
   node scripts/update-links.js --pwa https://m.51kankan.org/
   node scripts/update-links.js --apk-name kankan_V2.4.0.apk --push`);
-}
-
-function decrypt(html) {
-  const contentMatch = html.match(/var content="([^"]+)"/);
-  const keyMatch = html.match(/CryptoJS\.enc\.Utf8\.parse\("([^"]+)"\)/);
-  if (!contentMatch || !keyMatch) throw new Error('encrypted payload not recognised');
-  const key = Buffer.from(keyMatch[1], 'utf8');
-  const decipher = crypto.createDecipheriv('aes-128-cbc', key, key);
-  const buf = Buffer.from(contentMatch[1], 'base64');
-  return Buffer.concat([decipher.update(buf), decipher.final()]).toString('utf8');
-}
-
-function encrypt(plaintext) {
-  const keyStr = crypto.randomBytes(8).toString('hex'); // 16 hex chars = 16 bytes utf8
-  const key = Buffer.from(keyStr, 'utf8');
-  const cipher = crypto.createCipheriv('aes-128-cbc', key, key);
-  const enc = Buffer.concat([cipher.update(plaintext, 'utf8'), cipher.final()]).toString('base64');
-  return `<script  src="/theme/skin1/js/crypto-js.min.js?_v=20251024"></script>
-<script src="/theme/skin1/js/aes.min.js?_v=20251024"></script>
-<script>
-var content="${enc}";
-var key =CryptoJS.enc.Utf8.parse("${keyStr}");
-var iv =CryptoJS.enc.Utf8.parse("${keyStr}");
-var options = { mode: CryptoJS.mode.CBC,padding:CryptoJS.pad.Pkcs7,iv:iv}
-content = CryptoJS.AES.decrypt(content,key,options).toString(CryptoJS.enc.Utf8)
-document.write(content)
-</script>`;
 }
 
 function replaceBetween(text, regex, newValue, label, file) {
